@@ -1,0 +1,242 @@
+@baseURL = http://localhost:5000
+@adminEmail = admin@example.com
+@adminPassword = adminpassword
+@teacherEmail = teacher@example.com
+@teacherPassword = teacherpassword
+@validClassId = 60d0fe4f5311236168a12345
+@adminToken =
+@teacherToken =
+@studentId =
+
+### Get Admin Token
+POST {{baseURL}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{adminEmail}}",
+  "password": "{{adminPassword}}"
+}
+
+@adminToken = {{res.response.body.token}}
+
+### Get Teacher Token
+POST {{baseURL}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{teacherEmail}}",
+  "password": "{{teacherPassword}}"
+}
+
+@teacherToken = {{res.response.body.token}}
+
+### Admin - Create Student (Success)
+POST {{baseURL}}/api/students
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "firstName": "John",
+  "lastName": "Doe",
+  "dateOfBirth": "2005-01-15",
+  "gender": "Male",
+  "bloodGroup": "A+",
+  "aadharNo": "123456789012",
+  "academic": {
+    "class": "{{validClassId}}"
+  },
+  "contact": {
+    "email": "john.doe@example.com",
+    "studentMobile": "9876543210",
+    "address": {
+      "city": "Mumbai",
+      "state": "Maharashtra",
+      "postalCode": "400001"
+    }
+  },
+  "parents": {
+    "father": {
+      "name": "Father Doe",
+      "aadharNo": "987654321098",
+      "mobile": "9988776655"
+    },
+    "mother": {
+      "name": "Mother Doe"
+    }
+  }
+}
+
+@studentId = {{res.response.body.data._id}}
+
+### Admin - Create Student (Validation Error - Missing firstName)
+POST {{baseURL}}/api/students
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "lastName": "Doe",
+  "dateOfBirth": "2005-01-15",
+  "gender": "Male",
+  "bloodGroup": "A+",
+  "aadharNo": "123456789013",
+  "academic": {
+    "class": "{{validClassId}}"
+  },
+  "contact": {
+    "email": "jane.doe@example.com",
+    "studentMobile": "9876543211",
+    "address": {
+      "city": "Mumbai",
+      "state": "Maharashtra",
+      "postalCode": "400001"
+    }
+  },
+  "parents": {
+    "father": {
+      "name": "Father Doe",
+      "aadharNo": "987654321099",
+      "mobile": "9988776656"
+    },
+    "mother": {
+      "name": "Mother Doe"
+    }
+  }
+}
+
+### Admin - Create Student (Validation Error - Duplicate Aadhar)
+POST {{baseURL}}/api/students
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "firstName": "Another",
+  "lastName": "Student",
+  "dateOfBirth": "2006-02-20",
+  "gender": "Female",
+  "aadharNo": "123456789012",
+  "academic": {
+    "class": "{{validClassId}}"
+  },
+  "contact": {
+    "email": "another.student@example.com",
+    "studentMobile": "9876543212",
+    "address": {
+      "city": "Pune",
+      "state": "Maharashtra",
+      "postalCode": "411001"
+    }
+  },
+  "parents": {
+    "father": {
+      "name": "Another Father",
+      "aadharNo": "987654321091",
+      "mobile": "9988776651"
+    },
+    "mother": {
+      "name": "Another Mother"
+    }
+  }
+}
+
+### Admin - Get All Students
+GET {{baseURL}}/api/students
+Authorization: Bearer {{adminToken}}
+
+### Admin - Get Single Student
+GET {{baseURL}}/api/students/{{studentId}}
+Authorization: Bearer {{adminToken}}
+
+### Admin - Update Student (Success - Partial Update)
+PUT {{baseURL}}/api/students/{{studentId}}
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "contact": {
+    "email": "john.doe.updated@example.com"
+  }
+}
+
+### Admin - Update Student (Validation Error - Invalid Email)
+PUT {{baseURL}}/api/students/{{studentId}}
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "contact": {
+    "email": "invalid-email"
+  }
+}
+
+### Admin - Update Student (Validation Error - Duplicate Aadhar for another student)
+PUT {{baseURL}}/api/students/{{studentId}}
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "aadharNo": "123456789013"
+}
+
+### Teacher - Create Student (Forbidden)
+POST {{baseURL}}/api/students
+Content-Type: application/json
+Authorization: Bearer {{teacherToken}}
+
+{
+  "firstName": "Test",
+  "lastName": "Teacher",
+  "dateOfBirth": "2007-03-25",
+  "gender": "Female",
+  "bloodGroup": "B-",
+  "aadharNo": "111111111111",
+  "academic": {
+    "class": "{{validClassId}}"
+  },
+  "contact": {
+    "email": "teacher.student@example.com",
+    "studentMobile": "9876543213",
+    "address": {
+      "city": "Nagpur",
+      "state": "Maharashtra",
+      "postalCode": "440001"
+    }
+  },
+  "parents": {
+    "father": {
+      "name": "Teacher Father",
+      "aadharNo": "222222222222",
+      "mobile": "9988776657"
+    },
+    "mother": {
+      "name": "Teacher Mother"
+    }
+  }
+}
+
+### Teacher - Get All Students
+GET {{baseURL}}/api/students
+Authorization: Bearer {{teacherToken}}
+
+### Teacher - Get Single Student
+GET {{baseURL}}/api/students/{{studentId}}
+Authorization: Bearer {{teacherToken}}
+
+### Teacher - Update Student (Forbidden)
+PUT {{baseURL}}/api/students/{{studentId}}
+Content-Type: application/json
+Authorization: Bearer {{teacherToken}}
+
+{
+  "firstName": "Updated by Teacher"
+}
+
+### Teacher - Delete Student (Forbidden)
+DELETE {{baseURL}}/api/students/{{studentId}}
+Authorization: Bearer {{teacherToken}}
+
+### Unauthorized - Get All Students (No Token)
+GET {{baseURL}}/api/students
+
+### Admin - Delete Student (Success)
+DELETE {{baseURL}}/api/students/{{studentId}}
+Authorization: Bearer {{adminToken}}

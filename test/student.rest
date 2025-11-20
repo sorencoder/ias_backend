@@ -1,0 +1,112 @@
+### 📚 Student API Tests (REST Client)
+
+@baseUrl = http://localhost:5000
+@studentId = 60d5ec49f3e4c4001c4e7f8f
+@admissionNo = 2025-0001
+@currentYear = {{ $datetime "YYYY" }}
+@testClass = 10
+
+# --- 1. Create Student (POST) ---
+# Tests the pre-validate hook for automatic admissionNo generation
+### Create New Student
+### Create New Student
+POST {{baseUrl}}/api/students
+Content-Type: application/json
+
+{
+  "firstName": "Arjun",
+  "lastName": "Sharma",
+  "aadharNo": "{{ $randomInt 100000000000 999999999999 }}",
+  "class": "10",
+  "dateOfAdmission": "2025-08-15",
+  "dateOfBirth": "2010-04-20",
+  "gender": "male",
+  "fatherName": "Rajesh Sharma",
+  "fatherAadharNo": "{{ $randomInt 100000000000 999999999999 }}",
+  "motherName": "Priya Sharma",
+  "fatherMobile": "9876543210",
+  "address": "123 Saraswati Vihar"
+}
+
+### Get All Students
+GET {{baseUrl}}/api/students
+
+### Get Student by ID
+GET {{baseUrl}}/api/students/{{studentId}}
+
+
+
+
+
+---
+
+# --- 2. Create Another Student (POST) ---
+# To test that the admission number increments correctly.
+POST {{baseUrl}}/api/students
+Content-Type: application/json
+
+{
+    "firstName": "Pooja",
+    "middleName": "K",
+    "lastName": "Verma",
+    "enrollNo": "E-{{ $randomInt 100000 999999 }}",
+    "aadharNo": "{{ $randomInt 100000000000 999999999999 }}",
+    "class": "{{testClass}}",
+    "dateOfAdmission": "2025-08-16",
+    "dateOfBirth": "2010-06-10",
+    "gender": "Female",
+    "fatherName": "Sanjay Verma",
+    "fatherAadharNo": "{{ $randomInt 100000000000 999999999999 }}",
+    "motherName": "Rita Verma",
+    "guardianName": "Rita Verma",
+    "guardianMobile": "9988776655",
+    "guardianAadharNo": "{{ $randomInt 100000000000 999999999999 }}",
+    "address": "45 Ganga Apartments"
+}
+
+###
+
+# --- 3. Get All Students (GET) ---
+GET {{baseUrl}}/api/students
+
+###
+
+# --- 4. Get Student By ID (GET) ---
+# Replace the 'studentId' variable with an actual ID from a successful POST response
+GET {{baseUrl}}/api/students/{{studentId}}
+
+###
+
+# --- 5. Update Student (PUT/PATCH) ---
+# Update a student's address and mobile number.
+# Note: The 'fullName' virtual field will automatically reflect name changes.
+PATCH {{baseUrl}}/api/students/{{studentId}}
+Content-Type: application/json
+
+{
+    "studentMobile": "9112233445",
+    "address": "404 Updated Residency, New Delhi"
+}
+
+###
+
+# --- 6. Search Students by Class and Name (GET) ---
+# Tests the custom search logic (case-insensitive name regex)
+GET {{baseUrl}}/api/students/search?query.class={{testClass}}&query.name=arjun
+
+###
+
+# --- 7. Search Students by Admission Range (GET) ---
+# Tests filtering by dateOfAdmission
+GET {{baseUrl}}/api/students/search?query.startDate={{currentYear}}-08-01&query.endDate={{currentYear}}-09-01&limit=5
+
+###
+
+# --- 8. Search Students by Admission Number (GET) ---
+GET {{baseUrl}}/api/students/search?query.admissionNo={{admissionNo}}
+
+###
+
+# --- 9. Delete Student (DELETE) ---
+# CAUTION: This permanently removes the student.
+DELETE {{baseUrl}}/api/students/{{studentId}}
