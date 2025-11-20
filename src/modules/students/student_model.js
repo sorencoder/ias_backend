@@ -45,6 +45,12 @@ const StudentSchema = new Schema(
         enum: ["Active", "Inactive", "Graduated", "Alumni", "Dropped"],
         default: "Active",
       },
+      subjects: [
+        {
+          type: Schema.Types.ObjectId,
+          ref: "Subject",
+        },
+      ],
     },
 
     // --- Contact Information ---

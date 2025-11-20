@@ -1,0 +1,233 @@
+@baseURL = http://localhost:5000
+@adminEmail = admin@gmail.com
+@adminPassword = password123
+@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MWY0MzU5Yzk1OGQ0N2Q0MTc3MTUwOSIsInJvbGUiOiJBZG1pbiIsImlhdCI6MTc2MzY1NzA1MiwiZXhwIjoxNzY0MjYxODUyfQ.cjE1Wqab9T38BESkdoFgLkHu7vJx9jx1MqH7BzCfoU0
+@userId =
+@studentUserId =
+@teacherUserId =
+@validClassId = 60d0fe4f5311236168a12345
+
+# Important:
+# 1. Ensure your server is running on {{baseURL}}.
+# 2. You might need to create an initial admin user directly in your database
+#    if you don't have a registration endpoint for admins.
+# 3. Replace `adminEmail` and `adminPassword` with actual credentials for an existing admin user.
+# 4. Replace `validClassId` with an actual valid MongoDB ObjectId for a class in your database.
+# 5. For student and teacher creation, ensure `profileData` matches the expected schema of your
+#    `Student` and `Teacher` models respectively.
+
+### 1. Admin Login - Get Admin Token
+POST {{baseURL}}/api/auth/login
+Content-Type: application/json
+
+{
+  "loginIdentifier": "{{adminEmail}}",
+  "password": "{{adminPassword}}"
+}
+
+# @adminToken = {{res.response.body.data.token}}
+
+### 2. Create Admin User (Success - No profileData required)
+POST {{baseURL}}/api/users
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "firstName": "ishwar",
+  "lastName": "soren",
+  "email": "ishwarsoren@gmail.com",
+  "password": "ishwarsoren123",
+  "role": "Admin"
+}
+
+# @userId = {{res.response.body.data._id}}
+
+### 3. Create Student User (Success - with profileData)
+POST {{baseURL}}/api/users
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "firstName": "Student",
+  "lastName": "One",
+  "email": "student.one@example.com",
+  "password": "studentpassword",
+  "role": "Student",
+  "profileData": {
+    "firstName": "Student",
+    "lastName": "One",
+    "dateOfBirth": "2008-01-01",
+    "gender": "Male",
+    "aadharNo": "111122223333",
+    "academic": {
+      "class": "{{validClassId}}"
+    },
+    "contact": {
+      "address":{
+        "city": "Mumbai",
+      "state": "Maharashtra",
+      "postalCode": "400001"
+      }
+    },
+    "parents": {
+      "father": {
+        "name": "Father One",
+        "aadharNo": "444455556666",
+        "mobile": "9876543210"
+      },
+      "mother": {
+        "name": "Mother One"
+      }
+    }
+  }
+}
+
+# @studentUserId = {{res.response.body.data._id}}
+
+### 4. Create Teacher User (Success - with profileData)
+POST {{baseURL}}/api/users
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "firstName": "Teacher",
+  "lastName": "Alpha",
+  "email": "teacher.alpha@example.com",
+  "password": "teacherpassword",
+  "role": "Teacher",
+  "profileData": {
+    "firstName": "Teacher",
+    "lastName": "Alpha",
+    "email": "teacher.alpha@example.com",
+    "mobile": "9123456789",
+    "aadharNo": "777788889999",
+    "address": "Some Street, Some City",
+    "hireDate": "2020-09-01"
+  }
+}
+
+# @teacherUserId = {{res.response.body.data._id}}
+
+### 5. Create User (Validation Error - Missing firstName)
+POST {{baseURL}}/api/users
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "lastName": "Missing",
+  "email": "missing.name@example.com",
+  "password": "testpassword",
+  "role": "Student",
+  "profileData": {
+    "firstName": "Missing",
+    "lastName": "Name",
+    "dateOfBirth": "2009-01-01",
+    "gender": "Female",
+    "aadharNo": "123412341234",
+    "academic": {
+      "class": "{{validClassId}}"
+    },
+    "contact": {
+      "city": "Pune",
+      "state": "Maharashtra",
+      "postalCode": "411001"
+    },
+    "parents": {
+      "father": {
+        "name": "Father Missing",
+        "aadharNo": "432143214321",
+        "mobile": "9988776655"
+      },
+      "mother": {
+        "name": "Mother Missing"
+      }
+    }
+  }
+}
+
+### 6. Create User (Validation Error - Duplicate Email)
+POST {{baseURL}}/api/users
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "firstName": "Duplicate",
+  "lastName": "Email",
+  "email": "super.admin@example.com",
+  "password": "testpassword",
+  "role": "Admin"
+}
+
+### 7. Get All Users
+GET {{baseURL}}/api/users
+Authorization: Bearer {{adminToken}}
+
+### 8. Get User by ID (Admin)
+GET {{baseURL}}/api/users/{{userId}}
+Authorization: Bearer {{adminToken}}
+
+### 9. Get User by ID (Student)
+GET {{baseURL}}/api/users/{{studentUserId}}
+Authorization: Bearer {{adminToken}}
+
+### 10. Get User by ID (Not Found)
+GET {{baseURL}}/api/users/60d0fe4f5311236168a99999
+Authorization: Bearer {{adminToken}}
+
+### 11. Update User (Success - Change Status)
+PUT {{baseURL}}/api/users/{{userId}}
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "status": "inactive"
+}
+
+### 12. Update User (Validation Error - Invalid Email)
+PUT {{baseURL}}/api/users/{{userId}}
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "email": "invalid-email"
+}
+
+### 13. Update User (Validation Error - Duplicate Email for another user)
+PUT {{baseURL}}/api/users/{{studentUserId}}
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "email": "super.admin@example.com"
+}
+
+### 14. Delete User (Success - Deletes Super Admin User)
+DELETE {{baseURL}}/api/users/{{userId}}
+Authorization: Bearer {{adminToken}}
+
+### 15. Delete User (Not Found)
+DELETE {{baseURL}}/api/users/60d0fe4f5311236168a99999
+Authorization: Bearer {{adminToken}}
+
+### 16. Delete Student User (Success - Deletes Student User and Profile)
+DELETE {{baseURL}}/api/users/{{studentUserId}}
+Authorization: Bearer {{adminToken}}
+
+### 17. Test Login as Student with Aadhar Number (assuming a student user was created and exists)
+# You will need to replace `studentAadharNo` with the aadhar number of a created student.
+POST {{baseURL}}/api/auth/login
+Content-Type: application/json
+
+{
+  "loginIdentifier": "111122223333",
+  "password": "studentpassword"
+}
+
+### 18. Test Login as Student with Email (assuming a student user was created and exists)
+POST {{baseURL}}/api/auth/login
+Content-Type: application/json
+
+{
+  "loginIdentifier": "student.one@example.com",
+  "password": "studentpassword"
+}

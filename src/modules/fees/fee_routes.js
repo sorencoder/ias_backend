@@ -1,21 +1,49 @@
 import express from "express";
-import { createInvoice, payInvoice, getDues } from "./fee.controller.js";
-import { auth } from "../auth/auth.js";
-import { authorize } from "../auth/rbac.js";
+import {
+  createInvoice,
+  getAllInvoices,
+  getInvoiceById,
+  updateInvoice,
+  deleteInvoice,
+  payInvoice,
+  getDues,
+} from "./fee_controller.js";
+import {
+  createInvoiceValidation,
+  updateInvoiceValidation,
+  payInvoiceValidation,
+} from "./fee_validation.js";
+import auth from "../../middlewares/auth_middleware.js";
+import role from "../../middlewares/role_middleware.js";
+
 const router = express.Router();
 
-router.post("/", auth, authorize("accountant", "admin"), createInvoice);
+// Full CRUD on Invoices
+router
+  .route("/")
+  .post(auth, role(["Admin", "Accountant"]), createInvoiceValidation, createInvoice)
+  .get(auth, role(["Admin", "Accountant"]), getAllInvoices);
+
+router
+  .route("/:id")
+  .get(auth, role(["Admin", "Accountant", "Parent"]), getInvoiceById) // Add logic in controller for Parent role
+  .put(auth, role(["Admin", "Accountant"]), updateInvoiceValidation, updateInvoice)
+  .delete(auth, role(["Admin", "Accountant"]), deleteInvoice);
+
+// Special Actions
 router.post(
   "/:id/pay",
   auth,
-  authorize("accountant", "admin", "parent"),
+  role(["Admin", "Accountant", "Parent"]),
+  payInvoiceValidation,
   payInvoice
 );
 router.get(
   "/dues/:studentId",
   auth,
-  authorize("accountant", "admin", "parent"),
+  role(["Admin", "Accountant", "Parent"]),
   getDues
 );
 
 export default router;
+

@@ -1,0 +1,18 @@
+@baseUrl = http://localhost:5000
+@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MWY0MzU5Yzk1OGQ0N2Q0MTc3MTUwOSIsInJvbGUiOiJBZG1pbiIsImlhdCI6MTc2MzY1NzA1MiwiZXhwIjoxNzY0MjYxODUyfQ.cjE1Wqab9T38BESkdoFgLkHu7vJx9jx1MqH7BzCfoU0
+
+### Create Subject
+POST {{baseUrl}}/api/subjects
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "name": "Mathematics",
+  "code": "MATH-101",
+  "description": "Basic Concepts",
+  "teachers": ["6719abb3e66e5f039126ed4d"]
+}
+
+### Get All Subjects
+GET {{baseUrl}}/api/subjects
+Authorization: Bearer {{adminToken}}
